@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Volcano Explorer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --accent-color: #ff6b6b;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.8);
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --shadow-primary: 0 20px 40px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Animated background particles */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 107, 107, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(102, 126, 234, 0.2) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+      z-index: -1;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(120deg); }
+      66% { transform: translate(-20px, 20px) rotate(240deg); }
+    }
+
+    header {
+      position: relative;
+      text-align: center;
+      padding: 120px 20px 80px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--glass-border);
+      overflow: hidden;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    header h1 {
+      position: relative;
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5em, 6vw, 4.5em);
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff6b6b, #ffd93d, #6bcf7f);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 4s ease-in-out infinite;
+      margin-bottom: 20px;
+      z-index: 2;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    header p {
+      position: relative;
+      font-size: 1.3em;
+      font-weight: 300;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      z-index: 2;
+    }
+
+    section {
+      padding: 80px 40px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2em, 4vw, 3em);
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 60px;
+      color: var(--text-primary);
+      position: relative;
+    }
+
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 2px;
+      background: var(--primary-gradient);
+      border-radius: 2px;
+    }
+
+    .volcano-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .volcano-box {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 0;
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-primary);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .volcano-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 1;
+    }
+
+    .volcano-box:hover {
+      transform: translateY(-10px);
+      box-shadow: var(--shadow-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .volcano-box:hover::before {
+      opacity: 1;
+    }
+
+    .volcano-img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .volcano-box:hover .volcano-img {
+      transform: scale(1.05);
+    }
+
+    .volcano-info {
+      padding: 30px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .volcano-info h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8em;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 15px;
+      line-height: 1.3;
+    }
+
+    .volcano-info p {
+      font-size: 1em;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    footer {
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      section {
+        padding: 60px 20px;
+      }
+      
+      .volcano-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+      
+      header {
+        padding: 80px 20px 60px;
+      }
+      
+      .volcano-info {
+        padding: 25px;
+      }
+    }
+
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Enhanced focus states */
+    .volcano-box:focus-within {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 4px;
+    }
+
+    /* Loading animation */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .volcano-box {
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .volcano-box:nth-child(2) { animation-delay: 0.1s; }
+    .volcano-box:nth-child(3) { animation-delay: 0.2s; }
+    .volcano-box:nth-child(4) { animation-delay: 0.3s; }
+    .volcano-box:nth-child(5) { animation-delay: 0.4s; }
+
+    /* Subtle glow effect on hover */
+    .volcano-box:hover {
+      box-shadow: 
+        var(--shadow-hover),
+        0 0 40px rgba(255, 107, 107, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌋 Global Volcano Explorer</h1>
+    <p>Discover Earth's most magnificent geological wonders</p>
+  </header>
+
+  <section>
+    <div class="section-title">Stratovolcanoes</div>
+    <div class="volcano-container">
+      <div class="volcano-box">
+        <img src="491b3b051756d3dcb5af188f91da22d9.jpg" alt="Mount Vesuvius" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Mount Vesuvius</h2>
+          <p>Famous for destroying Pompeii in 79 AD, Vesuvius remains one of the world's most dangerous volcanoes due to its explosive history and proximity to Naples. Its perfectly preserved archaeological sites offer a haunting glimpse into ancient Roman life.</p>
+        </div>
+      </div>
+      <div class="volcano-box">
+        <img src="Mount Etna, Sicily.jpeg" alt="Mount Etna" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Mount Etna</h2>
+          <p>Europe's most active stratovolcano, Mount Etna has been erupting for over 500,000 years. This Sicilian giant continuously reshapes the landscape while providing fertile volcanic soil that supports thriving vineyards and agriculture.</p>
+        </div>
+      </div>
+      <div class="volcano-box">
+        <img src="mountfuji.jpg" alt="Mount Fuji" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Mount Fuji</h2>
+          <p>Japan's tallest peak and sacred stratovolcano, Mount Fuji last erupted in 1707. Revered in Japanese culture and art, this perfectly symmetrical mountain attracts millions of visitors and climbers seeking spiritual connection and natural beauty.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Shield Volcanoes</div>
+    <div class="volcano-container">
+      <div class="volcano-box">
+        <img src="f0e2036c88d0c5641b007db13b4dd31e.jpg" alt="Mauna Loa" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Mauna Loa</h2>
+          <p>One of Earth's largest volcanoes, Mauna Loa is a massive shield volcano covering half of Hawaii's Big Island. Its gentle slopes and frequent eruptions create spectacular lava flows that have shaped Hawaiian culture and landscape for millennia.</p>
+        </div>
+      </div>
+      <div class="volcano-box">
+        <img src="mount kea.jpg" alt="Mauna Kea" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Mauna Kea</h2>
+          <p>Hawaii's tallest mountain when measured from its base on the ocean floor, Mauna Kea is a dormant shield volcano crowned with snow. Its summit hosts world-class astronomical observatories, making it a bridge between Earth and the cosmos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-title">Caldera Volcanoes</div>
+    <div class="volcano-container">
+      <div class="volcano-box">
+        <img src="yellow stone.jpg" alt="Yellowstone" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Yellowstone Caldera</h2>
+          <p>This supervolcano beneath Yellowstone National Park has produced some of Earth's most catastrophic eruptions. Today, it powers the park's famous geothermal features including Old Faithful, creating a unique ecosystem and geological wonderland.</p>
+        </div>
+      </div>
+      <div class="volcano-box">
+        <img src="toba.jpg" alt="Toba Caldera" class="volcano-img">
+        <div class="volcano-info">
+          <h2>Toba Caldera</h2>
+          <p>Site of the most powerful volcanic eruption in human history, Toba's super-eruption 74,000 years ago nearly drove humanity to extinction. Today, this massive caldera lake in Sumatra stands as a serene reminder of nature's awesome power.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2025 Global Volcano Explorer — Crafted with passion for geological wonders
+  </footer>
+</body>
+</html>
